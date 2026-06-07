@@ -108,7 +108,7 @@ Each submission includes:
 The Apps Script creates separate practice tabs:
 
 - `Practice Raw Data`: one row per completed round
-- `FactFlow`: one row per student, updated after each completed practice round
+- `FactFlow Practice`: one row per student, updated after each completed practice round
 
 The same script still preserves the existing FactFlow Check behavior using the original `Raw Data` tab and the `Check` summary tab.
 

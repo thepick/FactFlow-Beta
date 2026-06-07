@@ -45,28 +45,96 @@ function doPost(e) {
   }
 }
 
+// -----------------------------------------------------------------------------
+// One-shot migration helper. Run this ONCE from the Apps Script editor
+// (select "migrateTabs" in the function dropdown, then Run) to rename any
+// legacy tabs to their canonical names without needing a student submission.
+//
+// What it does:
+//   1. 'Practice Summary' -> 'FactFlow Practice'  (if 'Practice Summary' exists)
+//   2. 'FactFlow'         -> 'FactFlow Practice'  (only if 'FactFlow' still exists
+//                                                AND 'FactFlow Practice' does not -
+//                                                i.e. it cleans up any orphan tab
+//                                                left behind by an earlier script)
+//   3. 'Summary'          -> 'Check'              (if 'Summary' exists)
+//
+// It is safe to run multiple times. If a tab with the canonical name already
+// exists, that step is skipped. Run it, look at the Execution log, then delete
+// this function (or just leave it - it has no side effects when not invoked).
+// -----------------------------------------------------------------------------
+function migrateTabs() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var log = [];
+  var pairs = [
+    ['Practice Summary', 'FactFlow Practice'],
+    ['FactFlow',         'FactFlow Practice'],
+    ['Summary',          'Check']
+  ];
+  for (var i = 0; i < pairs.length; i += 1) {
+    var from = pairs[i][0];
+    var to   = pairs[i][1];
+    // Don't rename 'FactFlow' to 'FactFlow Practice' if 'FactFlow Practice'
+    // already exists - that would throw and leave the orphan in place.
+    if (to === 'FactFlow Practice' && ss.getSheetByName(to)) {
+      log.push("Skip '" + from + "' -> '" + to + "' (target already exists)");
+      continue;
+    }
+    var sheet = ss.getSheetByName(from);
+    if (sheet) {
+      try {
+        sheet.setName(to);
+        log.push("Renamed '" + from + "' -> '" + to + "'");
+      } catch (e) {
+        log.push("FAILED '" + from + "' -> '" + to + "': " + (e && e.message ? e.message : e));
+      }
+    } else {
+      log.push("Skip '" + from + "' (not present)");
+    }
+  }
+  Logger.log('migrateTabs complete:\n' + log.join('\n'));
+  return log;
+}
+
 function doGet() {
   return json({ ok: true, receiver: 'factflow-combined-v1', status: 'Receiver is online.' });
 }
 
 // -----------------------------------------------------------------------------
 // FactFlow practice receiver
-// Visible practice summary tab: FactFlow
+// Visible practice summary tab: FactFlow Practice
 // Hidden practice log tab: Practice Raw Data
 // -----------------------------------------------------------------------------
 
-function ensureSheet(ss, name, headers, hidden, legacyName) {
+// ensureSheet(ss, name, headers, hidden, legacyNames)
+//   name       - canonical tab name to look for / create
+//   headers    - header row to write if a new tab is created
+//   hidden     - true to hide a freshly created tab
+//   legacyNames - string OR array of strings. The first legacy tab found will be
+//                 renamed to `name`. Use this when renaming existing tabs so
+//                 historical data is preserved across script versions.
+function ensureSheet(ss, name, headers, hidden, legacyNames) {
   var sheet = ss.getSheetByName(name);
-  var legacySheet;
+  var legacySheet, i;
 
-  if (!sheet && legacyName) {
-    legacySheet = ss.getSheetByName(legacyName);
-    if (legacySheet) {
-      try {
-        legacySheet.setName(name);
-        sheet = legacySheet;
-      } catch (e) {
-        sheet = legacySheet;
+  // Normalize legacyNames: accept a single string, an array, or null/undefined.
+  if (legacyNames && !Array.isArray(legacyNames)) {
+    legacyNames = [legacyNames];
+  } else if (!legacyNames) {
+    legacyNames = [];
+  }
+
+  // Try each legacy name in order; rename the first match and stop.
+  if (!sheet) {
+    for (i = 0; i < legacyNames.length; i += 1) {
+      legacySheet = ss.getSheetByName(legacyNames[i]);
+      if (legacySheet) {
+        try {
+          legacySheet.setName(name);
+          sheet = legacySheet;
+        } catch (e) {
+          sheet = legacySheet;
+        }
+        break;
       }
     }
   }
@@ -116,7 +184,13 @@ function ensurePracticeRawSheet(ss) {
 }
 
 function ensurePracticeSummarySheet(ss) {
-  return ensureSheet(ss, 'FactFlow', [
+  // Canonical name: 'FactFlow Practice'.
+  // Legacy aliases (in priority order):
+  //   'FactFlow'         - the name used by the previous version of this script
+  //   'Practice Summary' - the original old name
+  // The first legacy tab found will be renamed to 'FactFlow Practice' on the
+  // next submission, preserving any historical student data.
+  return ensureSheet(ss, 'FactFlow Practice', [
     'Student',
     'Email',
     'Student Key',
@@ -138,7 +212,7 @@ function ensurePracticeSummarySheet(ss) {
     'Last Graduation',
     'Total Submitted Rounds',
     'Last Round ID'
-  ], false);
+  ], false, ['FactFlow', 'Practice Summary']);
 }
 
 function hasRoundAlready(rawSheet, roundId) {
@@ -347,7 +421,7 @@ function handleFactFlowCheck(data) {
     var summary = ensureSheet(ss, 'Check', [
       'Student', 'Date', 'Code', 'Verified', 'Developing',
       'Accuracy %', 'Fluent', 'Slow', 'Missed', 'Facts to Review', 'Restart?'
-    ], false);
+    ], false, 'Summary');
 
     var summaryData = summary.getDataRange().getValues();
     var foundRow = -1;
