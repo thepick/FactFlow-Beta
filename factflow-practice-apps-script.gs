@@ -53,8 +53,22 @@ function doGet() {
 // FactFlow practice receiver
 // -----------------------------------------------------------------------------
 
-function ensureSheet(ss, name, headers, hidden) {
+function ensureSheet(ss, name, headers, hidden, legacyName) {
   var sheet = ss.getSheetByName(name);
+  var legacySheet;
+
+  if (!sheet && legacyName) {
+    legacySheet = ss.getSheetByName(legacyName);
+    if (legacySheet) {
+      try {
+        legacySheet.setName(name);
+        sheet = legacySheet;
+      } catch (e) {
+        sheet = legacySheet;
+      }
+    }
+  }
+
   if (!sheet) {
     sheet = ss.insertSheet(name);
     sheet.appendRow(headers);
@@ -100,7 +114,7 @@ function ensurePracticeRawSheet(ss) {
 }
 
 function ensurePracticeSummarySheet(ss) {
-  return ensureSheet(ss, 'Practice Summary', [
+  return ensureSheet(ss, 'FactFlow', [
     'Student',
     'Email',
     'Student Key',
@@ -122,7 +136,7 @@ function ensurePracticeSummarySheet(ss) {
     'Last Graduation',
     'Total Submitted Rounds',
     'Last Round ID'
-  ], false);
+  ], false, 'Practice Summary');
 }
 
 function hasRoundAlready(rawSheet, roundId) {
@@ -326,14 +340,10 @@ function handleFactFlowCheck(data) {
     lock = LockService.getScriptLock();
     lock.waitLock(10000);
 
-    var summary = ss.getSheetByName('Summary');
-    if (!summary) {
-      summary = ss.insertSheet('Summary');
-      summary.appendRow([
-        'Student', 'Date', 'Code', 'Verified', 'Developing',
-        'Accuracy %', 'Fluent', 'Slow', 'Missed', 'Facts to Review', 'Restart?'
-      ]);
-    }
+    var summary = ensureSheet(ss, 'Check', [
+      'Student', 'Date', 'Code', 'Verified', 'Developing',
+      'Accuracy %', 'Fluent', 'Slow', 'Missed', 'Facts to Review', 'Restart?'
+    ], false, 'Summary');
 
     var summaryData = summary.getDataRange().getValues();
     var foundRow = -1;

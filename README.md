@@ -77,12 +77,12 @@ Each classroom submission includes the student's Google display name, email, cla
 The Google Sheet receiver creates separate practice tabs:
 
 - `Practice Raw Data`: one row per completed practice round
-- `Practice Summary`: one row per student, updated after each submitted round
+- `FactFlow`: one row per student, updated after each submitted practice round
 
 The included Apps Script receiver also preserves the existing FactFlow Check tabs and behavior:
 
 - `Raw Data`
-- `Summary`
+- `Check`
 
 See `CLASSROOM-SUBMISSION-SETUP.md` for the full setup and beta testing checklist.
 
