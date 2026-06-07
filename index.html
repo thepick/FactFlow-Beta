@@ -1678,17 +1678,18 @@
     // ═══════════════════════════ CLASSROOM SUBMISSION ═══════════════════════════
     // Normal factflow.mtomlinson.ca use stays personal-practice only.
     // Classroom submission is enabled only by a valid ?t= key below.
-    // Paste the practice receiver Apps Script Web App URLs after deploying
-    // factflow-practice-apps-script.gs for each class sheet.
+    // Apps Script URLs are filled from the existing FactFlow Check class routes.
+    // IMPORTANT: before practice submissions will work, those Apps Script projects
+    // must be updated to the combined receiver in factflow-practice-apps-script.gs.
     var CLASSROOM_SUBMIT_VERSION = 'factflow-practice-submit-v1';
     var TEACHERS = {
       'IP5/9': {
         name: 'Ajarn Michael - IP5/9',
-        url: ''
+        url: 'https://script.google.com/macros/s/AKfycbxZAjDgNmpEdCohLeZ5kuCwC6J1VacejRacQn8MRIgwYVhoKaxmSexK-UdhqNXeMsX50g/exec'
       },
       'IP5/8': {
         name: 'Ajarn Jordan - IP5/8',
-        url: ''
+        url: 'https://script.google.com/macros/s/AKfycbz0Au2YhXQgyzM4b5OTSmhtKxSn2JKsGItNY_4o7vFCdN5pHuIYShHdkaQkyBERNMD9tA/exec'
       }
     };
 
@@ -1706,7 +1707,9 @@
       lastPayload: null,
       lastSubmitOk: false,
       lastSubmitError: '',
-      statusMode: ''
+      statusMode: '',
+      receiverChecked: false,
+      receiverReady: false
     };
 
     var round = null;
@@ -6689,18 +6692,34 @@
       }
     }
 
-    function sendClassroomRound(payload) {
-      if (!payload || !classroomState.enabled) return;
-      if (!canSubmitClassroomRound()) {
-        classroomState.statusMode = 'waiting';
-        updateClassroomSubmitUi('waiting');
-        return;
+    function verifyClassroomPracticeReceiver() {
+      var url;
+      if (!classroomState.enabled || !classroomState.submitUrl) {
+        return Promise.resolve(false);
+      }
+      if (classroomState.receiverChecked) {
+        return Promise.resolve(!!classroomState.receiverReady);
       }
 
-      attachClassroomIdentity(payload);
-      payload.submittedAt = new Date().toISOString();
-      updateClassroomSubmitUi('sending');
+      url = classroomState.submitUrl;
+      url += (url.indexOf('?') >= 0 ? '&' : '?') + 'check=practice-receiver&ts=' + encodeURIComponent(String(Date.now()));
 
+      return fetch(url, { method: 'GET' }).then(function (resp) {
+        return resp.text();
+      }).then(function (txt) {
+        var data = null;
+        try { data = JSON.parse(txt); } catch (e) { data = null; }
+        classroomState.receiverChecked = true;
+        classroomState.receiverReady = !!(data && data.ok && data.receiver === 'factflow-combined-v1');
+        return classroomState.receiverReady;
+      }).catch(function () {
+        classroomState.receiverChecked = true;
+        classroomState.receiverReady = false;
+        return false;
+      });
+    }
+
+    function postClassroomRound(payload) {
       fetch(classroomState.submitUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
@@ -6723,6 +6742,29 @@
         classroomState.lastSubmitOk = false;
         classroomState.lastSubmitError = e && e.message ? e.message : 'Network error';
         updateClassroomSubmitUi('error', 'Send failed. Try again.');
+      });
+    }
+
+    function sendClassroomRound(payload) {
+      if (!payload || !classroomState.enabled) return;
+      if (!canSubmitClassroomRound()) {
+        classroomState.statusMode = 'waiting';
+        updateClassroomSubmitUi('waiting');
+        return;
+      }
+
+      attachClassroomIdentity(payload);
+      payload.submittedAt = new Date().toISOString();
+      updateClassroomSubmitUi('sending');
+
+      verifyClassroomPracticeReceiver().then(function (ready) {
+        if (!ready) {
+          classroomState.lastSubmitOk = false;
+          classroomState.lastSubmitError = 'The Apps Script receiver has not been updated for FactFlow practice submissions.';
+          updateClassroomSubmitUi('error', 'Receiver needs updating. Practice was not sent.');
+          return;
+        }
+        postClassroomRound(payload);
       });
     }
 
