@@ -21,11 +21,11 @@ The `TEACHERS` map in `index.html` now contains the existing class Apps Script W
 var TEACHERS = {
   'IP5/9': {
     name: 'Ajarn Michael - IP5/9',
-    url: 'https://script.google.com/macros/s/AKfycbxZAjDgNmpEdCohLeZ5kuCwC6J1VacejRacQn8MRIgwYVhoKaxmSexK-UdhqNXeMsX50g/exec'
+    url: 'https://script.google.com/macros/s/AKfycbyuE5nR4e0d-qS5xvsoK_DdyUwUlBt-0uCBbG2KgNnhnF63B-B4g-DI819f5MfwDR93Bg/exec'
   },
   'IP5/8': {
     name: 'Ajarn Jordan - IP5/8',
-    url: 'https://script.google.com/macros/s/AKfycbz0Au2YhXQgyzM4b5OTSmhtKxSn2JKsGItNY_4o7vFCdN5pHuIYShHdkaQkyBERNMD9tA/exec'
+    url: 'https://script.google.com/macros/s/AKfycbz1DSGVUh2rCaQBRAnf9SuXiF3Ki6tEXKSRNsoiKt-v8z8-UIMARxclA-YjCaU2fQO2OA/exec'
   }
 };
 ```
