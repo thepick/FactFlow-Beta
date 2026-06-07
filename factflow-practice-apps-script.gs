@@ -51,6 +51,8 @@ function doGet() {
 
 // -----------------------------------------------------------------------------
 // FactFlow practice receiver
+// Visible practice summary tab: FactFlow
+// Hidden practice log tab: Practice Raw Data
 // -----------------------------------------------------------------------------
 
 function ensureSheet(ss, name, headers, hidden, legacyName) {
@@ -136,7 +138,7 @@ function ensurePracticeSummarySheet(ss) {
     'Last Graduation',
     'Total Submitted Rounds',
     'Last Round ID'
-  ], false, 'Practice Summary');
+  ], false);
 }
 
 function hasRoundAlready(rawSheet, roundId) {
@@ -299,6 +301,8 @@ function handleFactFlowPractice(data) {
 
 // -----------------------------------------------------------------------------
 // Existing FactFlow Check receiver behavior
+// Visible check summary tab: Check
+// Hidden check log tab: Raw Data
 // -----------------------------------------------------------------------------
 
 function handleFactFlowCheck(data) {
@@ -343,7 +347,7 @@ function handleFactFlowCheck(data) {
     var summary = ensureSheet(ss, 'Check', [
       'Student', 'Date', 'Code', 'Verified', 'Developing',
       'Accuracy %', 'Fluent', 'Slow', 'Missed', 'Facts to Review', 'Restart?'
-    ], false, 'Summary');
+    ], false);
 
     var summaryData = summary.getDataRange().getValues();
     var foundRow = -1;
