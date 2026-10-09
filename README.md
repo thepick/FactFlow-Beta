@@ -299,7 +299,7 @@ Important files:
 - `CLASSROOM-SUBMISSION-SETUP.md`: detailed setup and testing checklist
 - `CNAME`: currently set for `factflowbeta.mtomlinson.ca` in this beta package
 
-Before classroom submission can work, each class spreadsheet's Apps Script project must be updated to use `factflow-practice-apps-script.gs`, deployed as a Web App, and connected to the matching URL in the `TEACHERS` map inside `index.html`.
+Classroom submission uses the Gmail-owned Sheets and deployed class-specific receivers. See `CLASSROOM-SUBMISSION-SETUP.md` for replacement Sheet links and future deployment updates.
 
 The current `TEACHERS` entries are:
 
@@ -307,11 +307,11 @@ The current `TEACHERS` entries are:
 var TEACHERS = {
   'IP5/9': {
     name: 'Ajarn Michael - IP5/9',
-    url: 'https://script.google.com/macros/s/AKfycbyH5YG85Vbh6Gy03dUpOcJB6w4ifkO9tv4j3AsHdvSSJEHGUHvf-WL5JLsYi-vJYsEClg/exec'
+    url: 'https://script.google.com/macros/s/AKfycbxa_GuiAo3_fYujGi5UC9J0e7EQhGtuanbFqQd13E5-wQ0t42jQAl2m2NZcWOhKJ-bcRw/exec'
   },
   'IP5/8': {
     name: 'Ajarn Jordan - IP5/8',
-    url: 'https://script.google.com/macros/s/AKfycbwgJ0TKTAYtBVMv0cWLcUEbakBT-ZStjffCBqtdnjKS7xp5AaEr19FYnSIOgY9grCednA/exec'
+    url: 'https://script.google.com/macros/s/AKfycbxMQhKQ2Zu9YwDOHO6eUI0s530_AJaIAYvAxwAwHcoM5sv3alX284KvDd_sOmShWdn1Rw/exec'
   }
 };
 ```
