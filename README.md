@@ -299,7 +299,7 @@ Important files:
 - `CLASSROOM-SUBMISSION-SETUP.md`: detailed setup and testing checklist
 - `CNAME`: currently set for `factflowbeta.mtomlinson.ca` in this beta package
 
-Classroom submission uses the Gmail-owned Sheets and deployed class-specific receivers. See `CLASSROOM-SUBMISSION-SETUP.md` for replacement Sheet links and future deployment updates.
+Classroom submission uses the original shared Sheets and Gmail-run class-specific receivers. See `CLASSROOM-SUBMISSION-SETUP.md` for Sheet links and future deployment updates.
 
 The current `TEACHERS` entries are:
 
